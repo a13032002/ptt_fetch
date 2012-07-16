@@ -1,10 +1,13 @@
 #include <iostream>
+#include <iomanip>
 #include <cstdio>
 #include <sys/socket.h>
 #include <cstring>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/select.h>
+
 
 
 using namespace std;
@@ -36,28 +39,50 @@ int main(int argc, char* argv [])
 	
 	unsigned char buffer[4096];
 	int len;
-	/*
-	len = recv(fdSock, buffer, sizeof(buffer), 0);
-	for (int i = 0;i < len; i++)
-	{
-		if(buffer[i] == 0xFF)
-			cout << "IAC recv" << endl;
-
-		//cout << ((int)buffer[i]) << endl;
-	}
-	*/
 	
-	while ((len = recv(fdSock, buffer, sizeof(buffer), 0)))
-	{
-		for (int i = 0;i < len; i++)
-			if(buffer[i] == 0xFF)
-				cout << "IAC recv" 
-				<< " I = " << (int)buffer[i+1] 
-				<< " O = " << (int)buffer[i+2]
-				<< endl;
+	while (1){
+		fd_set fdRead;
+		FD_ZERO(&fdRead);
+		timespec waitTime;
+		waitTime.tv_sec = waitTime.tv_nsec = 0;
+		FD_SET(STDIN_FILENO, &fdRead);
+		FD_SET(fdSock, &fdRead);
 
-		buffer[len] = 0;
-//		cout << buffer;
+		int fdAvailable;
+
+		fdAvailable = pselect(fdSock + 1, &fdRead, NULL, NULL, NULL, NULL);
+
+		if (FD_ISSET(fdSock, &fdRead))
+		{
+
+			len = recv(fdSock, buffer, sizeof(buffer), 0);
+			
+			for (int i = 0; i < len; i++)
+			{
+					
+
+				if(buffer[i] == 0xFF)
+				{
+					cout << "IAC recv" << " I = " << setw(3)  << (int)buffer[i+1] << " O = " << (int)buffer[i+2]<< endl;
+					i += 2;
+				}
+				else
+				{
+//					cout << buffer[i];
+
+				}
+
+			}
+
+		}
+		else 
+		{
+			char keyboard[1000];
+			gets(keyboard);
+			send(fdSock, keyboard, strlen(keyboard), 0);
+
+		}
+
 	}
 
 	return 0;
