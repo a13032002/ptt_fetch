@@ -84,8 +84,11 @@ int main(int argc, char* argv [])
 					cout << "IAC recv" << " I = " << setw(3)  << (int)buffer[i+1] << " O = " << (int)buffer[i+2]<< endl;
 					i += 2;
 				}
-
-				else
+				else if (buffer[i] == 0x0A)
+				{
+					cout << "\v";
+				}
+				else 
 				{
 					cout << buffer[i];
 
