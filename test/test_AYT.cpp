@@ -69,6 +69,11 @@ int main(int argc, char* argv [])
 	
 	unsigned char buffer[4096];
 	int len;
+    bool slowMotion = false;
+    //send(fdSock, "a13032002\r", 10, 0);
+    //send(fdSock, "GCDLCM\r", 7, 0);
+    FILE *ptr = fopen("log", "w");
+
 	while (1){
 		fd_set fdRead;
 		FD_ZERO(&fdRead);
@@ -80,6 +85,7 @@ int main(int argc, char* argv [])
 		int fdAvailable;
 
 		fdAvailable = pselect(fdSock + 1, &fdRead, NULL, NULL, NULL, NULL);
+        
 
 		if (FD_ISSET(fdSock, &fdRead))
 		{
@@ -102,6 +108,11 @@ int main(int argc, char* argv [])
 				else 
 				{
 					cout << buffer[i];
+                    if(slowMotion)
+                    {
+                        fprintf(ptr, "%02X %c\n", buffer[i], buffer[i]);
+                    }
+                        
 
 				}
 
@@ -112,11 +123,19 @@ int main(int argc, char* argv [])
 		else 
 		{
 			char keyboard[1000];
+            unsigned char ayt[2] = {0xFF, 246};
 			int charRead = read(STDIN_FILENO, keyboard, 1000);
 			for (int i = 0; i < len; i++)
 				if (keyboard[i] == 0x0A)
 					keyboard[i] = 0x0D;
-			send(fdSock, keyboard, charRead, 0);
+            if (keyboard[0] == '\t')
+            {
+                //send(fdSock, ayt, 2, 0);
+                slowMotion = true;
+                cout << "\a";
+            }
+            else
+    			send(fdSock, keyboard, charRead, 0);
 
 		}
 
