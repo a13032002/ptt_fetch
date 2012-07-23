@@ -2,7 +2,7 @@
 #define _H_BBS_
 
 #define LINE_PER_PAGE 24
-#define INTERNAL_BUF_LEN 5000
+#define INTERNAL_BUF_LEN 10000
 #define CHAR_PER_LINE 80
 
 class BBS

@@ -112,6 +112,7 @@ int main(int argc, char* argv [])
                     {
                         fprintf(ptr, "%02X %c\n", buffer[i], buffer[i]);
                     }
+                    fflush(ptr);
                         
 
 				}
@@ -130,12 +131,14 @@ int main(int argc, char* argv [])
 					keyboard[i] = 0x0D;
             if (keyboard[0] == '\t')
             {
-                //send(fdSock, ayt, 2, 0);
                 slowMotion = true;
-                cout << "\a";
             }
             else
+            {
+                if (slowMotion)
+                    send(fdSock, ayt, 2, 0);
     			send(fdSock, keyboard, charRead, 0);
+            }
 
 		}
 

@@ -4,12 +4,13 @@
 #include <netinet/in.h>
 #include <sys/select.h>
 #include <cstring>
+#include <cstdio>
 
 #include <unistd.h>
 #include "bbs.h"
 #include "bbs_err.h"
 
-BBS::BBS()
+    BBS::BBS()
 : m_fdSock(-1)
 {
 }
@@ -48,7 +49,8 @@ int BBS::readPage()
 {
     if (m_fdSock == -1)
         return BBS_ERROR_NOT_CONNECTED;
-    
+
+    unsigned char aytCmd[2] = {0xFF, 246};
     int idx = 0;
     fd_set fdRead;
     timespec waitTime;
@@ -56,22 +58,42 @@ int BBS::readPage()
     waitTime.tv_nsec = 10e7;
 
     //unsigned char buf[4096];
+    //printf("m_sock = %d\n", m_fdSock);
+    if (send(m_fdSock, aytCmd, sizeof(aytCmd), 0) != 2)
+        return BBS_ERROR_FUNCTION_SEND_FAILED;
+
     while (1)
     {
         FD_ZERO(&fdRead);
         FD_SET(m_fdSock, &fdRead);
-        
+
         int fdAvailable = pselect(m_fdSock + 1, &fdRead, NULL, NULL, &waitTime, NULL);
         if (fdAvailable < 0)
             return BBS_ERROR_INTERNAL_ERROR;
+
+        int len;
         if (fdAvailable == 0)
         {
-            //TO DO: send SYT to check;
-            //return BBS_ERROR_SUCCESS;
-            break;
+            printf("enter fail testing\n");
+            m_szBuffer[idx] = 0;
+            if (idx >= 13)printf("w:%s\n", m_szBuffer + idx -13);
+            if (idx >= 13 && !strncmp( (char *)m_szBuffer + idx - 13, ",ack:0(-0)  ", 12))
+            {
+                idx -= 13;
+                while (strncmp((char *)m_szBuffer + idx, "  (#0)fd:", 9))
+                    idx--;
+                break;
+
+            }
+            else
+                continue;
         }
-        int len;
-        len = recv(m_fdSock, m_szBuffer + idx, INTERNAL_BUF_LEN - idx, 0);
+        else if(FD_ISSET(m_fdSock, &fdRead)){
+
+            len = recv(m_fdSock, m_szBuffer + idx, INTERNAL_BUF_LEN - idx, 0);
+            idx += len;
+            printf("recv %d bytes\n", len);
+        }
     }
     return BBS_ERROR_SUCCESS;
 
