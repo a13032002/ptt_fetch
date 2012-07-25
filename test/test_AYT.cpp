@@ -48,7 +48,7 @@ int main(int argc, char* argv [])
 	addr.sin_port = htons(23);
     
     hostent *hp;
-    if (!(hp = gethostbyname("ptt.cc")))
+    if (!(hp = gethostbyname("ptt2.cc")))
     {
         perror("gethostbyname failed");
         return -1;
@@ -135,8 +135,8 @@ int main(int argc, char* argv [])
             }
             else
             {
-                if (slowMotion)
-                    send(fdSock, ayt, 2, 0);
+                //if (slowMotion)
+                //    send(fdSock, ayt, 2, 0);
     			send(fdSock, keyboard, charRead, 0);
             }
 

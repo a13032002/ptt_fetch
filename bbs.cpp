@@ -10,6 +10,19 @@
 #include "bbs.h"
 #include "bbs_err.h"
 
+#ifdef REMOTE_OUTPUT
+extern FILE *ofptr;
+void OUT(const char *s)
+{
+    fprintf(ofptr,"%s", s);
+}
+#else
+void OUT(const char * s)
+{
+}
+#endif
+char mybuf[1000];
+
     BBS::BBS()
 : m_fdSock(-1)
 {
@@ -42,7 +55,6 @@ int BBS::connect(const char *host, int port /* = 23 */)
         return BBS_ERROR_FUNCITON_CONNECT_FAILED;
 
     m_fdSock = sock;
-    ::send(sock, "a13032002\r", 10, 0);
     return BBS_ERROR_SUCCESS;
 }
 
@@ -77,17 +89,29 @@ int BBS::readPage()
         int len;
         if (fdAvailable == 0)
         {
-            printf("enter fail testing\n");
-            if (miss_count == MAX_MISS_COUNT
-            miss_count++;
+            sprintf(mybuf,"Tesging End miss count : %d\n", miss_count);
+            OUT(mybuf);
+            if (miss_count == MAX_MISS_COUNT)
+            {
+                ::send(m_fdSock, aytCmd, sizeof(aytCmd), 0);
+            }
+            else
+                miss_count++;
+
             if (idx >= 14 && !strncmp( (char *)m_szBuffer + idx - 14, ",ack:0(-0)  ", 12))
             {
-                printf("idx a = %d\n", idx);
+                sprintf(mybuf, "idx a = %d\n", idx);
+                OUT(mybuf);
                 idx -= 13;
+
                 while (strncmp((char *)m_szBuffer + idx, "  (#0)fd:", 9))
                     idx--;
+
                 m_szBuffer[idx] = 0;
-                printf("idx b = %d\n", idx);
+                
+                sprintf(mybuf, "idx b = %d\n", idx);
+                OUT(mybuf);
+
                 break;
 
             }
@@ -100,10 +124,11 @@ int BBS::readPage()
                 continue;
         }
         else if(FD_ISSET(m_fdSock, &fdRead)){
-
+            miss_count = 0;
             len = recv(m_fdSock, m_szBuffer + idx, INTERNAL_BUF_LEN - idx, 0);
             idx += len;
-            printf("recv %d bytes\n", len);
+            sprintf(mybuf, "recv %d bytes\n", len);
+            OUT(mybuf);
         }
     }
     return idx;

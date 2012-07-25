@@ -4,7 +4,7 @@
 #define LINE_PER_PAGE 24
 #define INTERNAL_BUF_LEN 10000
 #define CHAR_PER_LINE 80
-#define MAX_MI_COUNT 10
+#define MAX_MISS_COUNT 10
 
 class BBS
 {

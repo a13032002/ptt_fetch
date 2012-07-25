@@ -3,35 +3,40 @@
 #include <cstdlib>
 #include "bbs.h"
 #include "bbs_err.h"
+#include "remote.h"
+#include <unistd.h>
+BBS bbs;
+void printPage()
+{
+    int ret = bbs.readPage();
+    char *ptr = (char *)bbs.getCurrentPage();
+    for (int i = 0; i < ret; i++)
+    {
+        if (*ptr == 0x0A)
+            putchar('\v');
+        else
+            putchar(*ptr);
+        ptr++;
+    }
+
+}
 int main()
 {
-    BBS bbs;
+	setvbuf(stdout, NULL, _IONBF, 0);
+
     if (bbs.connect("ptt.cc") != BBS_ERROR_SUCCESS)
     {
         printf("bbs cannot connect\n");
         return 0;
     }
-
-    while (1)
+    int ret = remote_input(bbs);
+    printf("remote_input return %d\n", ret);
+    ret = remote_output_init();
+    printf("remote_output_init return %d\n", ret);
+    printPage();
+    
+    while(1)
     {
-
-        int ret = bbs.readPage();
-        char s[1000];
-        char *ptr = (char *)bbs.getCurrentPage();
-        printf("bbs readPage return %d\n", ret);
-        for (int i = 0; i < ret; i++)
-            putchar(*ptr++);
-        fgets(s, 1000, stdin);
-        int len = strlen(s) - 1;
-        if (len == 0)
-            bbs.send((unsigned char *)"\r", 1);
-        else
-            bbs.send((unsigned char*) s, len);
-
-        
-        fflush(NULL);
+        pause();
     }
-
-
-
 }
