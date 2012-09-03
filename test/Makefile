@@ -13,5 +13,8 @@ formfeed : ff.cpp
 
 back_to_first_line : back_to_first_line.cpp
 	g++ back_to_first_line.cpp -o back_to_first_line.o
+
+ansi : ansi.cpp
+	g++ ansi.cpp -o ansi.o
 clean :
 	rm -f *.o
